@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-export default function App() {
+export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const recognitionRef = useRef(null);
 
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
     if (SpeechRecognition) {
       const recog = new SpeechRecognition();
       recog.lang = 'en-US';
@@ -16,10 +16,19 @@ export default function App() {
       };
       recognitionRef.current = recog;
     }
-    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+    if (typeof navigator !== 'undefined') {
+      navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+        const video = document.getElementById('webcam');
+        if (video) video.srcObject = stream;
+      }).catch(() => {});
+    }
+    // cleanup
+    return () => {
       const video = document.getElementById('webcam');
-      if (video) video.srcObject = stream;
-    }).catch(() => {});
+      if (video && video.srcObject) {
+        video.srcObject.getTracks().forEach(t => t.stop());
+      }
+    };
   }, []);
 
   const handleSend = async (text) => {
@@ -51,25 +60,27 @@ export default function App() {
   };
 
   return (
-    <div className="dexter-container">
-      <h1>Dexter</h1>
-      <div id="webcam-wrapper">
-        <video id="webcam" autoPlay muted width="320" height="240"></video>
+    <div className="w-full max-w-xl mx-auto text-center space-y-4">
+      <h1 className="text-3xl font-bold">Dexter</h1>
+      <div className="flex justify-center">
+        <video id="webcam" autoPlay muted width="320" height="240" className="rounded" />
       </div>
-      <div className="chat">
-        <div className="messages">
+      <div className="bg-black/50 p-4 rounded space-y-2">
+        <div className="h-72 overflow-y-auto text-left space-y-1">
           {messages.map((m, i) => (
-            <div key={i} className={`msg ${m.from}`}>{m.text}</div>
+            <div key={i} className={m.from === 'user' ? 'text-white' : 'text-green-400'}>{m.text}</div>
           ))}
         </div>
-        <div className="input-row">
+        <div className="flex gap-2">
           <input
+            className="flex-1 p-2 bg-gray-900 border border-cyan-300 text-cyan-300"
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') handleSend(input); }}
-            placeholder="Type your message" />
-          <button onClick={() => handleSend(input)}>Send</button>
-          <button onClick={startVoice}>Talk</button>
+            placeholder="Type your message"
+          />
+          <button className="px-3 py-2 bg-cyan-400 text-black" onClick={() => handleSend(input)}>Send</button>
+          <button className="px-3 py-2 bg-cyan-400 text-black" onClick={startVoice}>Talk</button>
         </div>
       </div>
     </div>
