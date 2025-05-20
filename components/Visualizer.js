@@ -2,10 +2,11 @@ import { useEffect, useRef } from 'react';
 
 const THREE_SRC = 'https://unpkg.com/three@0.152.2/build/three.min.js';
 
-export default function Visualizer() {
+export default function Visualizer({ enabled, onLevel }) {
   const mountRef = useRef(null);
 
   useEffect(() => {
+    if (!enabled) return;
     let renderer, scene, camera, bars = [];
     let analyser, dataArray, audioCtx, source;
     let animationId;
@@ -54,9 +55,14 @@ export default function Visualizer() {
       animationId = requestAnimationFrame(animate);
       if (analyser) {
         analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
         bars.forEach((bar, i) => {
-          bar.scale.y = Math.max(0.1, dataArray[i] / 50);
+          const val = dataArray[i];
+          sum += val;
+          bar.scale.y = Math.max(0.1, val / 50);
         });
+        const level = sum / dataArray.length / 255;
+        onLevel && onLevel(level);
       }
       renderer && renderer.render(scene, camera);
     }
@@ -70,7 +76,7 @@ export default function Visualizer() {
       mount.innerHTML = '';
       if (script.parentNode) script.parentNode.removeChild(script);
     };
-  }, []);
+  }, [enabled]);
 
-  return <div ref={mountRef} className="w-full h-64 bg-black"></div>;
+  return <div ref={mountRef} className="w-full h-24 bg-black rounded"></div>;
 }

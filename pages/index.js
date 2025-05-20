@@ -1,14 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
+import Head from 'next/head';
 import Visualizer from '../components/Visualizer';
+import ThreeCanvas from '../components/ThreeCanvas';
 import Settings from '../components/Settings';
+import ConversationsSidebar from '../components/ConversationsSidebar';
+import ChatSidebar from '../components/ChatSidebar';
 
 export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [voice, setVoice] = useState('en-US');
+  const [showSettings, setShowSettings] = useState(false);
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [level, setLevel] = useState(0);
   const recognitionRef = useRef(null);
+  const streamRef = useRef(null);
 
+  // setup speech recognition when mic enabled or voice changes
   useEffect(() => {
+    if (!micEnabled) return;
     const SpeechRecognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
     if (SpeechRecognition) {
       const recog = new SpeechRecognition();
@@ -19,20 +30,31 @@ export default function Home() {
       };
       recognitionRef.current = recog;
     }
-    if (typeof navigator !== 'undefined') {
+  }, [voice, micEnabled]);
+
+  // handle camera enable/disable
+  useEffect(() => {
+    const video = document.getElementById('webcam');
+    if (!video) return;
+    if (cameraEnabled && typeof navigator !== 'undefined') {
       navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-        const video = document.getElementById('webcam');
-        if (video) video.srcObject = stream;
+        streamRef.current = stream;
+        video.srcObject = stream;
       }).catch(() => {});
+    } else {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+      }
+      video.srcObject = null;
     }
-    // cleanup
     return () => {
-      const video = document.getElementById('webcam');
-      if (video && video.srcObject) {
-        video.srcObject.getTracks().forEach(t => t.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
       }
     };
-  }, [voice]);
+  }, [cameraEnabled]);
 
   const handleSend = async (text) => {
     if (!text) return;
@@ -59,35 +81,51 @@ export default function Home() {
   };
 
   const startVoice = () => {
-    recognitionRef.current && recognitionRef.current.start();
+    if (micEnabled && recognitionRef.current) recognitionRef.current.start();
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto text-center space-y-4">
-      <h1 className="text-3xl font-bold">Dexter</h1>
-      <Visualizer />
-      <div className="flex gap-4 justify-center">
-        <video id="webcam" autoPlay muted width="320" height="240" className="rounded" />
-        <Settings voice={voice} setVoice={setVoice} />
-      </div>
-      <div className="bg-black/50 p-4 rounded space-y-2">
-        <div className="h-72 overflow-y-auto text-left space-y-1">
-          {messages.map((m, i) => (
-            <div key={i} className={m.from === 'user' ? 'text-white' : 'text-green-400'}>{m.text}</div>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <input
-            className="flex-1 p-2 bg-gray-900 border border-cyan-300 text-cyan-300"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') handleSend(input); }}
-            placeholder="Type your message"
+    <>
+      <Head>
+        <title>Dexter</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
+      <div className="h-screen w-screen flex overflow-hidden text-cyan-300">
+        <ConversationsSidebar conversations={[]} />
+        <div className="flex-1 flex flex-col">
+          <div className="flex justify-end gap-2 p-2 bg-gray-800">
+            <button onClick={() => setCameraEnabled(v => !v)} className="px-3 py-1 bg-cyan-400 text-black rounded">
+              {cameraEnabled ? 'Disable' : 'Enable'} Camera
+            </button>
+            <button onClick={() => setMicEnabled(v => !v)} className="px-3 py-1 bg-cyan-400 text-black rounded">
+              {micEnabled ? 'Disable' : 'Enable'} Mic
+            </button>
+            <button onClick={() => setShowSettings(true)} className="px-3 py-1 bg-cyan-400 text-black rounded">
+              Settings
+            </button>
+          </div>
+          <div className="flex flex-1 overflow-hidden">
+          <div className="w-64 p-4 flex flex-col items-center bg-gray-900/80 border-r border-cyan-700">
+            <video id="webcam" autoPlay muted className={`w-full h-48 bg-gray-700 rounded mb-2 ${cameraEnabled ? '' : 'hidden'}`} />
+            <Visualizer enabled={micEnabled} onLevel={setLevel} />
+          </div>
+          <div className="flex-1 flex items-center justify-center bg-black">
+            <ThreeCanvas level={level} />
+          </div>
+          <ChatSidebar
+            messages={messages}
+            input={input}
+            setInput={setInput}
+            onSend={handleSend}
+            onTalk={startVoice}
+            micEnabled={micEnabled}
           />
-          <button className="px-3 py-2 bg-cyan-400 text-black" onClick={() => handleSend(input)}>Send</button>
-          <button className="px-3 py-2 bg-cyan-400 text-black" onClick={startVoice}>Talk</button>
+          </div>
         </div>
+        {showSettings && (
+          <Settings voice={voice} setVoice={setVoice} onClose={() => setShowSettings(false)} />
+        )}
       </div>
-    </div>
+    </>
   );
 }

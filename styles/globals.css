@@ -3,5 +3,5 @@
 @tailwind utilities;
 
 html, body {
-  @apply bg-black text-cyan-300 min-h-screen flex items-center justify-center p-4;
+  @apply bg-black text-cyan-300 h-screen w-screen m-0 overflow-hidden;
 }
