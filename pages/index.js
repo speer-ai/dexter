@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
+import Visualizer from '../components/Visualizer';
+import Settings from '../components/Settings';
 
 export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [voice, setVoice] = useState('en-US');
   const recognitionRef = useRef(null);
 
   useEffect(() => {
     const SpeechRecognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
     if (SpeechRecognition) {
       const recog = new SpeechRecognition();
-      recog.lang = 'en-US';
+      recog.lang = voice;
       recog.onresult = e => {
         const transcript = e.results[0][0].transcript;
         handleSend(transcript);
@@ -29,7 +32,7 @@ export default function Home() {
         video.srcObject.getTracks().forEach(t => t.stop());
       }
     };
-  }, []);
+  }, [voice]);
 
   const handleSend = async (text) => {
     if (!text) return;
@@ -48,7 +51,7 @@ export default function Home() {
       const reply = data.reply;
       setMessages(m => [...m, { from: 'dexter', text: reply }]);
       const uttr = new SpeechSynthesisUtterance(reply);
-      uttr.lang = 'en-US';
+      uttr.lang = voice;
       window.speechSynthesis.speak(uttr);
     } catch (err) {
       console.error(err);
@@ -62,8 +65,10 @@ export default function Home() {
   return (
     <div className="w-full max-w-xl mx-auto text-center space-y-4">
       <h1 className="text-3xl font-bold">Dexter</h1>
-      <div className="flex justify-center">
+      <Visualizer />
+      <div className="flex gap-4 justify-center">
         <video id="webcam" autoPlay muted width="320" height="240" className="rounded" />
+        <Settings voice={voice} setVoice={setVoice} />
       </div>
       <div className="bg-black/50 p-4 rounded space-y-2">
         <div className="h-72 overflow-y-auto text-left space-y-1">
