@@ -1,7 +1,9 @@
-import { Configuration, OpenAIApi } from 'openai';
+import OpenAI from 'openai';
 
-const configuration = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
-const openai = new OpenAIApi(configuration);
+const openai = new OpenAI({
+  apiKey: process.env.XAI_API_KEY,
+  baseURL: 'https://api.x.ai/v1',
+});
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -10,14 +12,14 @@ export default async function handler(req, res) {
   const { message, history = [] } = req.body;
   try {
     const messages = history.concat({ role: 'user', content: message });
-    const completion = await openai.createChatCompletion({
-      model: 'gpt-3.5-turbo',
+    const completion = await openai.chat.completions.create({
+      model: 'grok-2-vision-1212',
       messages,
     });
-    const reply = completion.data.choices[0].message.content;
+    const reply = completion.choices[0].message.content;
     res.status(200).json({ reply });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'OpenAI request failed' });
+    res.status(500).json({ error: 'xAI request failed' });
   }
 }
