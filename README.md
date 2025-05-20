@@ -1,74 +1,40 @@
-# Dexter
+# Dexter Web
 
+Dexter is a web-based voice assistant inspired by the "Jarvis" interface. This version runs entirely with JavaScript and uses the OpenAI API for responses. It contains a small Node backend and a React frontend.
 
-## Installation
+## Setup
 
-#### Installing Core packages
+1. Install Node.js (v18 or later).
+2. Create a `.env` file in `server/` and set `OPENAI_API_KEY` to your API key.
+3. From the repository root run:
+   ```bash
+   cd server && npm install
+   cd ../client && npm install
+   ```
 
-`cd Core`
+## Development
 
-set up virtual environment and install requirements
+Run both the backend and the frontend during development:
 
-`python3 -m venv env`
+```bash
+# Terminal 1
+cd server && npm start
 
-on Linux/Mac run `source env/bin/activate`
+# Terminal 2
+cd client && npm run dev
+```
 
-or on Windows run `env\Scripts\activate.bat`
+The frontend will proxy API requests to the backend.
 
--Make sure pip is up to date via `python -m pip install --upgrade pip`
+## Deployment
 
-On windows, a manual download of PyAudio may be required. To do this, go to https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio
-and download the version that corresponds to your version of Python.
-(Example: Python 3.9 64-bit is equivalent to PyAudi-0.2.11-cp39-cp39-win_amd64.whl)
-Once downloaded, open the command line at the .whl file's directory and type:
-`pip install _______.whl`
+The project is designed to be deployed on Vercel. Deploy the `client` as a static site and the `server` as a serverless function or separate service.
 
-(...If using a mac, pyaudio may not install correctly without portaudio.)
-(To install portaudio on mac, first install homebrew with `ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)`)
-(This may require your password twice.)
-(after that, use `run brew install portaudio`)
+## Features
 
-pip install pywin32
+- Text and voice input using the browser Speech Recognition API.
+- Text to speech responses.
+- Simple chat interface with a webcam preview in place of the original gesture controls.
+- All intelligence provided by OpenAI's `gpt-3.5-turbo` model.
 
-Now, install the rest of the requirements
-
-`pip install -r requirements.txt`
-
-Two additional downloads are needed
-
-`python3 -m spacy download en_core_web_sm`
-
-<!---`python -m nltk.downloader 'punkt'`
-###This install doesn't work, but the program still runs. Is it necessary? -->
-
-
-#### Installing Dashboard packages
-
-`cd Dashboard`
-
-<!--`npm i -g .`!-->
-
-## Running Applications
-
-#### Running Core
-
-`cd Core`
-
-`python main.py`
-
-to launch individual components, run either `python test_dexter.py` or `python test_gesture.py`
-
-#### Running Dashboard
-
-
-Install nodejs at https://nodejs.org/en/download/
-check if it is installed with 
-`node -v`
-and
-`npm -v`
-
-`cd Dashboard`
-
-`npm install`
-
-`npm start`
+Dexter speaks with an English accent and keeps a conversational history so each reply feels natural.
