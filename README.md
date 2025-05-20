@@ -1,40 +1,39 @@
-# Dexter Web
+# Dexter Web (Next.js)
 
-Dexter is a web-based voice assistant inspired by the "Jarvis" interface. This version runs entirely with JavaScript and uses the OpenAI API for responses. It contains a small Node backend and a React frontend.
+Dexter is a web‑based voice assistant inspired by the "Jarvis" interface. This refactored version uses **Next.js** with **Tailwind CSS** and the OpenAI API.
 
 ## Setup
 
 1. Install Node.js (v18 or later).
-2. Create a `.env` file in `server/` and set `OPENAI_API_KEY` to your API key.
-3. From the repository root run:
-   ```bash
-   cd server && npm install
-   cd ../client && npm install
-   ```
+2. Create a `.env.local` file at the repository root and set `OPENAI_API_KEY` to your API key.
+3. Install dependencies:
+
+```bash
+npm install
+```
 
 ## Development
 
-Run both the backend and the frontend during development:
+Start the development server:
 
 ```bash
-# Terminal 1
-cd server && npm start
-
-# Terminal 2
-cd client && npm run dev
+npm run dev
 ```
 
-The frontend will proxy API requests to the backend.
+Navigate to `http://localhost:3000` to use Dexter. API requests are handled by Next.js API routes.
 
-## Deployment
+## Production Build
 
-The project is designed to be deployed on Vercel. Deploy the `client` as a static site and the `server` as a serverless function or separate service.
+```bash
+npm run build
+npm start
+```
 
 ## Features
 
 - Text and voice input using the browser Speech Recognition API.
 - Text to speech responses.
-- Simple chat interface with a webcam preview in place of the original gesture controls.
+- Simple chat interface with a webcam preview.
 - All intelligence provided by OpenAI's `gpt-3.5-turbo` model.
 
-Dexter speaks with an English accent and keeps a conversational history so each reply feels natural.
+Dexter speaks with an English accent and keeps a conversational history so replies feel natural.
